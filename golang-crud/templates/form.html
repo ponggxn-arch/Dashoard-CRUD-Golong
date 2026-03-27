@@ -1,0 +1,83 @@
+{{define "content"}}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    {{if eq .Action "add"}}
+                        <i class="bi bi-plus-circle"></i> Add New User
+                    {{else}}
+                        <i class="bi bi-pencil"></i> Edit User
+                    {{end}}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form action="{{if eq .Action "add"}}/create{{else}}/update{{end}}" method="POST" id="userForm">
+                    {{if eq .Action "edit"}}
+                    <input type="hidden" name="id" value="{{.User.ID}}">
+                    {{end}}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            <i class="bi bi-person"></i> Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{.User.Name}}" placeholder="Enter full name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope"></i> Email <span class="text-danger">*</span>
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{.User.Email}}" placeholder="Enter email address" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">
+                            <i class="bi bi-telephone"></i> Phone
+                        </label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               value="{{.User.Phone}}" placeholder="Enter phone number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">
+                            <i class="bi bi-geo-alt"></i> Address
+                        </label>
+                        <textarea class="form-control" id="address" name="address" 
+                                  rows="3" placeholder="Enter address">{{.User.Address}}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> 
+                            {{if eq .Action "add"}}Create{{else}}Update{{end}}
+                        </button>
+                        <a href="/" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('userForm').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    
+    if (name === '' || email === '') {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Name and Email are required fields'
+        });
+        return false;
+    }
+});
+</script>
+{{end}}

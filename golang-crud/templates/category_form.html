@@ -1,0 +1,66 @@
+{{define "content"}}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    {{if eq .Action "add"}}
+                    <i class="bi bi-plus-circle"></i> เพิ่มหมวดหมู่สินค้าใหม่
+                    {{else}}
+                    <i class="bi bi-pencil"></i> แก้ไขหมวดหมู่สินค้า
+                    {{end}}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{if eq .Action "add"}}/categories/create{{else}}/categories/update{{end}}">
+                    {{if eq .Action "edit"}}
+                    <input type="hidden" name="id" value="{{.Category.ID}}">
+                    {{end}}
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-tag"></i> ชื่อหมวดหมู่ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" value="{{.Category.Name}}" required placeholder="เช่น: อิเล็กทรอนิกส์, เครื่องใช้สำนักงาน">
+                        <small class="text-muted">ชื่อหมวดหมู่ต้องไม่ซ้ำกัน</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-card-text"></i> รายละเอียด</label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="อธิบายเกี่ยวกับหมวดหมู่นี้...">{{.Category.Description}}</textarea>
+                        <small class="text-muted">ระบุรายละเอียดเพิ่มเติมเกี่ยวกับหมวดหมู่สินค้า (ถ้ามี)</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>หมายเหตุ:</strong> หมวดหมู่จะช่วยให้คุณจัดกลุ่มสินค้าได้ง่ายขึ้น และสามารถค้นหาสินค้าตามหมวดหมู่ได้
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <a href="/categories" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> ยกเลิก
+                        </a>
+                        <button type="submit" class="btn btn-info">
+                            <i class="bi bi-save"></i> บันทึก
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{if eq .Action "edit"}}
+        <!-- Additional Info for Edit Mode -->
+        <div class="card mt-3">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> ข้อมูลเพิ่มเติม</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>รหัสหมวดหมู่:</strong> <span class="badge bg-info">{{.Category.ID}}</span></p>
+                <p class="mb-0"><small class="text-muted">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    หากต้องการลบหมวดหมู่นี้ ต้องแน่ใจว่าไม่มีสินค้าใดอยู่ในหมวดหมู่นี้
+                </small></p>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

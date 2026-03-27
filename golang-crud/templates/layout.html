@@ -1,0 +1,143 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Inventory Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .card {
+            box-shadow: 0 0 20px rgba(0,0,0,.1);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-box-seam"></i> 📦 Inventory Management
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-box"></i> สินค้า
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/products"><i class="bi bi-list"></i> รายการสินค้า</a></li>
+                            <li><a class="dropdown-item" href="/products/add"><i class="bi bi-plus-circle"></i> เพิ่มสินค้า</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/categories"><i class="bi bi-folder"></i> จัดการหมวดหมู่</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-arrow-left-right"></i> จัดการสต็อก
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/stock/in"><i class="bi bi-arrow-down-circle"></i> รับสินค้าเข้า</a></li>
+                            <li><a class="dropdown-item" href="/stock/out"><i class="bi bi-arrow-up-circle"></i> เบิกสินค้าออก</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/stock/movements"><i class="bi bi-clock-history"></i> ประวัติการเคลื่อนไหว</a></li>
+                        </ul>
+                    </li>
+                    <!-- Users menu removed because it's not used -->
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="bi bi-box-arrow-right"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        {{template "content" .}}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Check for success messages -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const error = urlParams.get('error');
+        
+        if (success === 'created') {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: 'เพิ่มข้อมูลสำเร็จแล้ว',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else if (success === 'updated') {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: 'อัปเดตข้อมูลสำเร็จแล้ว',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else if (success === 'stock_in') {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: 'บันทึกการรับสินค้าเข้าเรียบร้อย',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else if (success === 'stock_out') {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: 'บันทึกการเบิกสินค้าเรียบร้อย',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+        
+        if (error === 'insufficient') {
+            Swal.fire({
+                icon: 'error',
+                title: 'ข้อผิดพลาด!',
+                text: 'จำนวนสินค้าไม่เพียงพอ'
+            });
+        } else if (error === '1') {
+            Swal.fire({
+                icon: 'error',
+                title: 'ข้อผิดพลาด!',
+                text: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'
+            });
+        }
+    </script>
+</body>
+</html>
+{{end}}

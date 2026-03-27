@@ -1,0 +1,149 @@
+{{define "content"}}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-arrow-up-circle"></i> บันทึกการเบิกสินค้าออก (Stock Out)
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/stock/out/process" id="stockOutForm">
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-box"></i> เลือกสินค้า <span class="text-danger">*</span></label>
+                        <select class="form-select" name="product_id" id="productSelect" required>
+                            <option value="">-- กรุณาเลือกสินค้า --</option>
+                            {{range .Products}}
+                            <option value="{{.ID}}" data-name="{{.Name}}" data-code="{{.Code}}" data-unit="{{.Unit}}" data-stock="{{.StockQuantity}}" 
+                                {{if eq $.Product.ID .ID}}selected{{end}}>
+                                [{{.Code}}] {{.Name}} - คงเหลือ: {{.StockQuantity}} {{.Unit}}
+                            </option>
+                            {{end}}
+                        </select>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="bi bi-123"></i> จำนวนที่เบิกออก <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control form-control-lg" name="quantity" id="quantity" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="bi bi-calculator"></i> หน่วย</label>
+                            <input type="text" class="form-control" id="unitDisplay" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-receipt"></i> เลขที่เอกสารอ้างอิง</label>
+                        <input type="text" class="form-control" name="reference_no" placeholder="เช่น: REQ-001, ใบเบิก">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-building"></i> ปลายทาง/ผู้เบิก</label>
+                        <input type="text" class="form-control" name="destination" placeholder="เช่น: แผนกผลิต, แผนกซ่อมบำรุง">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-chat-left-text"></i> หมายเหตุ</label>
+                        <textarea class="form-control" name="reason" rows="2" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
+                    </div>
+
+                    <!-- Summary Box -->
+                    <div class="alert alert-warning" id="summaryBox" style="display:none;">
+                        <h5><i class="bi bi-info-circle"></i> สรุปข้อมูล</h5>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td width="40%"><strong>สินค้า:</strong></td>
+                                <td id="summaryProduct">-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>จำนวนคงเหลือปัจจุบัน:</strong></td>
+                                <td><span class="badge bg-secondary" id="currentStock">0</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>จำนวนที่เบิกออก:</strong></td>
+                                <td><span class="badge bg-danger" id="removeStock">0</span></td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>จำนวนคงเหลือใหม่:</strong></td>
+                                <td><strong><span class="badge bg-warning text-dark" id="newStock">0</span></strong></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Insufficient Stock Warning -->
+                    <div class="alert alert-danger" id="warningBox" style="display:none;">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>คำเตือน!</strong> จำนวนที่เบิกมากกว่าจำนวนคงเหลือ
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <a href="/products" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> ยกเลิก
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg" id="submitBtn" disabled>
+                            <i class="bi bi-check-circle"></i> บันทึกการเบิกออก
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const productSelect = document.getElementById('productSelect');
+const quantityInput = document.getElementById('quantity');
+const unitDisplay = document.getElementById('unitDisplay');
+const summaryBox = document.getElementById('summaryBox');
+const warningBox = document.getElementById('warningBox');
+const submitBtn = document.getElementById('submitBtn');
+
+productSelect.addEventListener('change', updateSummary);
+quantityInput.addEventListener('input', updateSummary);
+
+function updateSummary() {
+    const selected = productSelect.options[productSelect.selectedIndex];
+    const qty = parseInt(quantityInput.value) || 0;
+    
+    if (selected.value && qty > 0) {
+        const productName = selected.dataset.name;
+        const productCode = selected.dataset.code;
+        const unit = selected.dataset.unit;
+        const currentStock = parseInt(selected.dataset.stock);
+        const newStock = currentStock - qty;
+        
+        unitDisplay.value = unit;
+        document.getElementById('summaryProduct').textContent = `[${productCode}] ${productName}`;
+        document.getElementById('currentStock').textContent = `${currentStock} ${unit}`;
+        document.getElementById('removeStock').textContent = `-${qty} ${unit}`;
+        document.getElementById('newStock').textContent = `${newStock} ${unit}`;
+        
+        summaryBox.style.display = 'block';
+        
+        // Check if sufficient stock
+        if (qty > currentStock) {
+            warningBox.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('btn-danger');
+            submitBtn.classList.add('btn-secondary');
+        } else {
+            warningBox.style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-secondary');
+            submitBtn.classList.add('btn-danger');
+        }
+    } else {
+        summaryBox.style.display = 'none';
+        warningBox.style.display = 'none';
+        submitBtn.disabled = true;
+        unitDisplay.value = '';
+    }
+}
+
+// Initialize if product is pre-selected
+if (productSelect.value) {
+    updateSummary();
+}
+</script>
+{{end}}

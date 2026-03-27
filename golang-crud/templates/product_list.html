@@ -1,0 +1,163 @@
+{{define "content"}}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-box-seam"></i> จัดการสินค้า
+                </h4>
+                <a href="/products/add" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> เพิ่มสินค้าใหม่
+                </a>
+            </div>
+            <div class="card-body">
+                <!-- Search and Filter -->
+                <form method="GET" action="/products" class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" name="search" placeholder="ค้นหาชื่อสินค้า หรือ รหัส..." value="{{.Search}}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="category">
+                            <option value="">-- ทุกหมวดหมู่ --</option>
+                            {{range .Categories}}
+                            <option value="{{.ID}}" {{if eq $.CategoryID (printf "%d" .ID)}}selected{{end}}>{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> ค้นหา
+                        </button>
+                    </div>
+                </form>
+
+                {{if .Products}}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="8%">รหัส</th>
+                                <th width="20%">ชื่อสินค้า</th>
+                                <th width="12%">หมวดหมู่</th>
+                                <th width="8%">หน่วย</th>
+                                <th width="10%" class="text-end">ราคา</th>
+                                <th width="8%" class="text-center">คงเหลือ</th>
+                                <th width="10%">ตำแหน่ง</th>
+                                <th width="10%" class="text-center">สถานะ</th>
+                                <th width="14%" class="text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .Products}}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{.Code}}</span></td>
+                                <td><strong>{{.Name}}</strong></td>
+                                <td>{{.CategoryName}}</td>
+                                <td>{{.Unit}}</td>
+                                <td class="text-end">{{printf "%.2f" .Price}} ฿</td>
+                                <td class="text-center">
+                                    {{if eq .StockQuantity 0}}
+                                    <span class="badge bg-danger">{{.StockQuantity}}</span>
+                                    {{else if le .StockQuantity .MinStock}}
+                                    <span class="badge bg-warning text-dark">{{.StockQuantity}}</span>
+                                    {{else}}
+                                    <span class="badge bg-success">{{.StockQuantity}}</span>
+                                    {{end}}
+                                </td>
+                                <td>{{.Location}}</td>
+                                <td class="text-center">
+                                    {{if eq .Status "active"}}
+                                    <span class="badge bg-success">ใช้งาน</span>
+                                    {{else}}
+                                    <span class="badge bg-secondary">ไม่ใช้งาน</span>
+                                    {{end}}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="/products/edit?id={{.ID}}" class="btn btn-sm btn-warning" title="แก้ไข">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="/stock/in?product_id={{.ID}}" class="btn btn-sm btn-success" title="รับเข้า">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </a>
+                                        <a href="/stock/out?product_id={{.ID}}" class="btn btn-sm btn-info" title="เบิกออก">
+                                            <i class="bi bi-arrow-up"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger delete-btn" data-product-id="{{.ID}}" title="ลบ">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+                {{else}}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> ไม่พบข้อมูลสินค้า
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-product-id');
+            deleteProduct(id);
+        });
+    });
+});
+
+function deleteProduct(id) {
+    Swal.fire({
+        title: 'ยืนยันการลบ?',
+        text: "สินค้านี้จะถูกทำเครื่องหมายว่าไม่ใช้งาน",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ใช่, ลบเลย!',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/products/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'id=' + id
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลบแล้ว!',
+                        text: 'สินค้าถูกทำเครื่องหมายว่าไม่ใช้งาน',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ข้อผิดพลาด!',
+                    text: 'ไม่สามารถลบสินค้าได้'
+                });
+            });
+        }
+    });
+}
+</script>
+{{end}}
